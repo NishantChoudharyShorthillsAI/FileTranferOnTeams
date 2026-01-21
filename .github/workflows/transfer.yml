@@ -19,8 +19,10 @@ jobs:
 
             - name: Send file content to Microsoft Teams
               run: |
-                FILE_CONTENT=$(jq -Rs . server_file.txt)
+                PAYLOAD=$(jq -n --rawfile f server_file.txt \
+                '{text: ("📄 File from Azure Server:\n\n" + $f)}')
 
-                curl -H "Content-Type: application/json" -d "{
-                \"text\": \"📄 File from Azure Server:\\n\\n\" + $FILE_CONTENT
-                }" ${{ secrets.TEAMS_WEBHOOK_URL }}
+                curl -H "Content-Type: application/json" \
+                    -d "$PAYLOAD" \
+                    ${{ secrets.TEAMS_WEBHOOK_URL }}
+

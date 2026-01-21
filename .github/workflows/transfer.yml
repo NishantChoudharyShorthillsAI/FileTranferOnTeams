@@ -1,26 +1,26 @@
 name: Send Azure VM File to Teams
 
 on:
-  workflow_dispatch:
+    workflow_dispatch:
 
 jobs:
-  send-file:
-    runs-on: ubuntu-latest
+    send-file:
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Install sshpass
-        run: sudo apt-get update && sudo apt-get install -y sshpass
+        steps:
+            - name: Install sshpass
+              run: sudo apt-get update && sudo apt-get install -y sshpass
 
-      - name: Copy file from Azure VM
-        run: |
-          sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" \
-          scp -o StrictHostKeyChecking=no \
-          ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }}:/home/ubuntu/hello.txt ./server_file.txt
+            - name: Copy file from Azure VM
+              run: |
+                  sshpass -p "${{ secrets.AZURE_VM_PASSWORD }}" \
+                  scp -o StrictHostKeyChecking=no \
+                  ${{ secrets.AZURE_VM_USER }}@${{ secrets.AZURE_VM_IP }}:/home/ubuntu/hello.txt ./server_file.txt
 
-      - name: Send file content to Microsoft Teams
-        run: |
-          FILE_CONTENT=$(sed 's/"/\\"/g' server_file.txt | tr '\n' '\\n')
+            - name: Send file content to Microsoft Teams
+              run: |
+                FILE_CONTENT=$(jq -Rs . server_file.txt)
 
-          curl -H "Content-Type: application/json" -d "{
-            \"text\": \"📄 File from Azure Server:\\n\\n$FILE_CONTENT\"
-          }" ${{ secrets.TEAMS_WEBHOOK_URL }}
+                curl -H "Content-Type: application/json" -d "{
+                \"text\": \"📄 File from Azure Server:\\n\\n\" + $FILE_CONTENT
+                }" ${{ secrets.TEAMS_WEBHOOK_URL }}
